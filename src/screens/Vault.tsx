@@ -37,19 +37,18 @@ export function Vault({ navigate, focusNewestAccount = false, deferredAccountId 
           {deferred && <span className="recommendation-eyebrow">Still needs attention</span>}
           <h2 className="visually-hidden">{`Give ${recommended.serviceName} its own password.`}</h2>
           <LeakDiagram leaked={recommended.serviceName} others={related.map(account => account.serviceName)} />
+          <p className="recommendation-description">If one password is exposed, someone could try it on the other accounts.</p>
         </> : <>
           <span className="recommendation-eyebrow">{deferred ? 'Still needs attention' : 'Recommended action'}</span>
           <h2 className="recommendation-title">{`${recommended.serviceName} needs a stronger password.`}</h2>
+          <p className="recommendation-description">A password that is easy to guess makes an account easier to access.</p>
         </>}
-        {recommended.issueType === 'reused' && <ReuseGroup accounts={[recommended, ...related]} />}
-        <p className="recommendation-description">{recommended.issueType === 'reused'
-          ? 'If one password is exposed, someone could try it on the other accounts.'
-          : 'A password that is easy to guess makes an account easier to access.'}</p>
         {deferred && <p className="recommendation-reminder">You can fix this whenever you’re ready.</p>}
         <PrimaryButton onClick={() => navigate({ screen: 'safer-password', accountId: recommended.id })}>
           Fix {recommended.serviceName} password <ArrowRight size={17} aria-hidden="true" />
         </PrimaryButton>
         <TextAction onClick={() => navigate({ screen: 'security' })}>Choose another account</TextAction>
+        {recommended.issueType === 'reused' && <ReuseGroup accounts={[recommended, ...related]} />}
         <WhyItMatters><p>{recommended.issueType === 'reused'
           ? 'A unique password keeps an exposed password from being reused on your other accounts. Choose the account that matters most to you.'
           : 'Long, unique passwords are harder to guess and keep one exposed password from working across accounts.'}</p></WhyItMatters>
