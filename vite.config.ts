@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/ju-secure-emma/',
+  base: '/ju-secure-final/',
 });

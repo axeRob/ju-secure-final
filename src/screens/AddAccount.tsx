@@ -160,7 +160,7 @@ export function AddAccount({ navigate, onAdded }: { navigate: (route: Route) => 
             <ul className="reuse-account-list" aria-label="Accounts using this demo password">
               {matches.map(account => <li key={account.id}>{account.serviceName}</li>)}
             </ul>
-            <p>Using it again would connect another account to the same password.</p>
+            <p>Using it again means another demo account would share the same password.</p>
             <div className="reuse-recommendation"><span className="section-eyebrow">Recommended</span><p>Use a unique password instead. We’ll create it for you.</p></div>
             <div className="reuse-warning-actions">
               <PrimaryButton onClick={selectGeneratedPassword}>Use a unique password</PrimaryButton>

@@ -27,7 +27,7 @@ export function routePath(route: Route): string {
 }
 
 function readRoute(): Route {
-  const path = window.location.hash.slice(1) || '/vault';
+  const path = window.location.hash.slice(1) || '/welcome';
   for (const [screen, pattern] of Object.entries(ROUTE_PATHS)) {
     const keys = [...pattern.matchAll(/:(\w+)/g)].map(match => match[1]);
     const match = path.match(new RegExp(`^${pattern.replace(/:\w+/g, '([^/]+)')}/?$`));

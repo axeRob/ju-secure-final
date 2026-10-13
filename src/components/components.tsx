@@ -116,7 +116,6 @@ export function SecuritySummary({ summary }: SecuritySummaryProps) {
       {hasIssue ? (
         <>
           <p className="health-attention-count">{summary.needsAttention} {summary.needsAttention === 1 ? 'account needs' : 'accounts need'} attention.</p>
-          <p className="summary-description password-health-note">You don’t need to fix everything today. We’ll help you improve one account at a time.</p>
         </>
       ) : (
         <div className="summary-all-clear"><CheckCircle2 size={17} aria-hidden="true" /> No recommended fixes right now</div>
@@ -143,7 +142,7 @@ export function SecurityIssueCard({ title, description, actionLabel, onAction, p
 }
 
 export function PasswordDisplay({
-  label = 'Password',
+  label = 'Demo password',
   value = 'DEMO-JU-Secure-24!',
   defaultVisible = false,
   hideCopy = false,
@@ -175,19 +174,21 @@ export function PasswordDisplay({
   async function copyDemoValue() {
     const request = ++copyRequest.current
     if (feedbackTimer.current !== null) clearTimeout(feedbackTimer.current)
-    let simulated = false
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value)
       } else {
-        simulated = true
+        throw new Error('Clipboard unavailable')
       }
     } catch {
-      simulated = true
+      if (request !== copyRequest.current) return
+      setCopied(false)
+      setCopyStatus(visible ? 'Copy unavailable. Select the demo password to copy it manually.' : 'Copy unavailable. Show the demo password to copy it manually.')
+      return
     }
     if (request !== copyRequest.current) return
     setCopied(true)
-    setCopyStatus(simulated ? 'Demo copy simulated.' : 'Fictitious demo value copied.')
+    setCopyStatus('Fictitious demo value copied.')
     feedbackTimer.current = setTimeout(() => {
       setCopied(false)
       setCopyStatus('')
@@ -209,7 +210,7 @@ export function PasswordDisplay({
           </button>
           {!hideCopy && <button type="button" className="password-copy" onClick={copyDemoValue}>
             {copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? 'Copied' : 'Copy password'}
           </button>}
         </div>
       </div>

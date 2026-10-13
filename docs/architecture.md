@@ -1,14 +1,20 @@
-# JU Secure demo architecture
+# JU Secure final prototype architecture
 
-## State
+## Foundation and scope
 
-`AppProvider` owns a React reducer and supplies state, dispatch, and derived selectors. State is in memory and resets on reload. Neither localStorage nor a backend stores demo accounts or passwords. Do not add real credentials to this academic prototype.
+The final prototype is based on Emma commit `af5a26be1cf0226e502e0cf9285559bf0e6bca7c`; Karim commit `c27236dffba41732bf34f1aa681690423fd63555` informs direct contextual actions and reduced interaction friction. Emma's components, design tokens, hash routing, reducer, and account fixtures remain the structural foundation. The original repositories are unchanged.
 
-Each account has `id`, `serviceName`, `username`, `status`, `issueType`, `passwordStrength`, `reusedGroupId`, `initial`, and `demoPassword`. The last field contains a visibly fictitious `DEMO-` example, never a real credential. Each reused group shares one fixed example; initially safe accounts have unique examples; weak accounts have clearly labeled weak demo values.
+This is an educational interaction prototype. It has no real registration, authentication, backend, credential storage, service integrations, or ability to verify an external password change. Generated `DEMO-` values are predictable fictional examples and must never be used on real accounts.
 
-Initial data contains exactly 24 accounts: **3 safe, 15 reused, 6 weak**, reflecting Emma's current password habits. JU Student Web, Canvas / JU, and University Library are safe. GitHub, Facebook, Apple, Slack, Duolingo, and Student Email are weak.
+## State and invariants
 
-| Reused group | Accounts |
+`AppProvider` owns a React reducer and exposes state, dispatch, and derived selectors. State is in memory. Reloading restores the initial fixtures, preferences, and progress; neither localStorage nor a backend stores accounts or passwords.
+
+Each account has `id`, `serviceName`, `username`, `status`, `issueType`, `passwordStrength`, `reusedGroupId`, `initial`, and `demoPassword`. Reuse is represented by explicit group IDs. Group membership is not inferred from service names, usernames, or presumed real password analysis. Add account can opt into matching the exact fictional examples.
+
+Initial data contains **24 accounts: 3 safe, 15 reused, 6 weak**. JU Student Web, Canvas / JU, and University Library are safe. GitHub, Facebook, Apple, Slack, Duolingo, and Student Email are weak.
+
+| Reused group | Accounts sharing the same demo password |
 | --- | --- |
 | `demo-shared-a` | Spotify, Google, Netflix, Instagram |
 | `demo-shared-b` | Amazon, Booking.com, Microsoft |
@@ -16,74 +22,90 @@ Initial data contains exactly 24 accounts: **3 safe, 15 reused, 6 weak**, reflec
 | `demo-shared-d` | Reddit, Discord, Steam |
 | `demo-shared-e` | Dropbox, Adobe |
 
-Reuse relationships are explicit IDs, never inferred from names or email addresses. `getSecuritySummary` derives every displayed count from accounts. `getRecommendedAccount` prioritizes unresolved Spotify, then the first reused account, then the first weak account; it returns no recommendation when all accounts are safe. Vault, Security, and optional post-success guidance use this shared selector. Vault can temporarily prioritize an explicitly deferred account so its calm reminder remains relevant. Reuse guidance derives members from the selected account's actual group.
+Security renders all active groups and their actual members, with a contextual fix available for each account. Reuse explanations refer to sharing the same password, rather than implying a technical connection between services.
 
-The reducer supports issue resolution, adding/importing demo accounts, filtering, settings updates, onboarding, and returning-user state. Interactive screens dispatch resolution, addition, and preference updates; informational onboarding/import/unlock screens do not perform those operations. Add/import preserve existing accounts and assign deterministic unique IDs on collisions.
+`getSecuritySummary` derives displayed counts from current accounts. `getRecommendedAccount` prioritizes unresolved Spotify, then another reused account, then a weak account, and returns no recommendation when all accounts are safe. Vault and optional post-success guidance share this recommendation logic. Security offers every active group's accounts as equal choices. A deferred account can remain the Vault recommendation without changing its password or status. The bottom-navigation attention badge derives from `summary.needsAttention` and disappears at zero.
 
-`resolve-issue` accepts an optional generated `demoPassword`. A valid fresh supplied example is saved; otherwise `generateDemoPassword` supplies a fresh one. The selected account becomes strong and safe, and leaves its explicit reused group. Other group members retain their original examples. A strong final member becomes safe automatically; a weak final member retains its strength issue. `lastResolution` records the selected account, original issue, related names/IDs, actual before/after summaries, and a snapshot of each original peer's status/group after normalization. Success uses these historical snapshots, so later changes cannot rewrite the displayed result. The number of problems fixed is `before.needsAttention - after.needsAttention`. `clear-resolution` can dismiss metadata without changing accounts.
+`resolve-issue` saves a valid fresh supplied `demoPassword`, or generates a fresh example if needed. It marks the selected account strong and safe and removes it from its reused group. Other accounts keep their passwords. Group normalization makes a strong final member safe; a weak final member retains its strength issue. `status` and `issueType` describe the primary displayed issue, while `passwordStrength` preserves strength independently.
 
-For the four-member Spotify group, resolving Spotify gives 4 safe / 14 reused / 6 weak; resolving Google next gives 5 / 13 / 6. Resolving Netflix then automatically clears Instagram's final reuse relationship, producing 7 / 11 / 6. Other groups remain unchanged. The interactive journeys use these derived reducer results throughout; display counts are not hardcoded.
+`lastResolution` captures the selected account, original issue, related names/IDs, before/after summaries, and the original peers' resulting statuses/groups. Success uses historical snapshots, so later changes cannot rewrite an earlier comparison. The number of issues cleared is `before.needsAttention - after.needsAttention`; it can exceed one when a final reuse relationship disappears.
 
-`status` and `issueType` represent the primary displayed issue, while `passwordStrength` records strength separately. Removing a final reuse relationship keeps a weak remaining account marked weak; it becomes safe only if its strength is strong. If later prompts introduce further simultaneous issue types, extend this to a typed issue collection and keep unrelated issues when resolving one. Do not infer actual password strength or reuse: all values are supplied by demo fixtures.
+Resolving Spotify produces **4 safe / 14 reused / 6 weak**. Resolving Google next gives **5 / 13 / 6**; resolving Netflix gives **7 / 11 / 6**, because Instagram no longer shares its password with another account. In the two-member Dropbox/Adobe group, resolving one account removes both reuse warnings without changing the other's password. Unrelated groups and weak accounts retain their issues.
 
-## Demo interactions
+The reducer also supports account addition/import, filters, demo settings, onboarding, and returning-user state. Informational Import, Create vault, and Unlock screens do not collect real credentials or perform an actual import/authentication operation. Existing accounts are preserved; collision-safe IDs are assigned to additions.
 
-`data/passwords.ts` generates predictable, in-memory 20-character `DEMO-` examples containing letters, numbers, and symbols. A counter ensures fresh examples while existing/current values are excluded. This is an educational generator, not a cryptographic tool. Generated previews stay in screen state until the simulated change completes; cancellation and “Not now” do not update accounts.
+## Password-change journey
 
-`PasswordDisplay` supports reveal/hide and copying the fictitious value. It uses clipboard access when available, reports simulated copying when unavailable, and resets confirmation after a short delay. A new value or a route remount resets transient reveal/copy feedback.
+The contextual fix opens one prepared password screen rather than requiring the user to read a separate risk screen first. The account name, generated example, short demo warning, password controls, and continue action appear first. Full group context, the concise risk explanation, and optional expanded education remain below so a user can act immediately or read further.
 
-The reuse and weak journeys explain the concrete consequence using actual accounts and offer one primary “Fix this for me” action. The generated-password screen prepares the recommended example and a safe-default checklist without technical choices. “Use recommended password” runs a short local loading sequence, dispatches one resolution, and opens historical BEFORE/NOW feedback. Copying is optional; generating another remains secondary. Success offers Back to Vault and an optional next recommended fix. Missing accounts and already-safe accounts provide return actions. No account provider, external website, or authentication service is contacted.
+The route `/security/safer/:accountId` has two local screen steps: **Prepare a demo password**, then **Service guidance and demo confirmation**. Their actions follow three logical stages:
 
-“Not now” returns to Vault without dispatching an account change. `App` retains only the deferred account ID for a calm “Still needs attention” recommendation and a working fix action. Preparing or abandoning a generated preview does not alter passwords, statuses, groups, or totals.
+| Stage | Actions and effect |
+| --- | --- |
+| Prepare | Display a fresh unique `DEMO-` example; reveal, copy, generate another, or continue. Account state is unchanged. |
+| Service instructions | Explain that JU Secure cannot change the external account; give short instructions to find the service's own password settings. Account state is unchanged. |
+| Confirm | Ask whether the user changed the password on the website. Only **Yes, mark as completed in this demo** dispatches `resolve-issue` and opens success. **Not yet** leaves the account unchanged. |
 
-Add account accepts made-up service/user details and defaults to a unique generated example. Its alternative selects only existing fictitious values or fixed weak presets. `getDemoPasswordMatches` compares exact `DEMO-` strings; matching accounts appear immediately with the consequence of reuse. “Use a unique password” prepares the safe alternative. “Keep this password” is required before saving a duplicate, and changing the selected value clears confirmation.
+Preparation and step selection live in screen state. Cancelling, leaving the route, browser back, and generating/copying an example do not dispatch resolution. In-app back returns from instructions to preparation, then to the flow's origin. Completion is a user-reported fictional update, never a verified external change. There is no timer that silently completes an action.
 
-This flow opts into `add-account.detectDemoReuse`. Matching fake values join an existing explicit group or form a deterministic, collision-safe `demo-reuse-*` group. Matching safe/weak accounts become primarily reused while their strength fields remain intact. Resolving a newly added reused account therefore leaves a weak final peer weak. Legacy add/import actions do not infer reuse without the opt-in flag. Saving updates derived totals and returns to Vault; added accounts live only for the current visit, so the total can exceed the initial 24.
+`data/serviceGuidance.ts` supplies manual navigation hints, including provider sign-in and passkey cases. The user opens a service separately through its own app, a known website, or a saved bookmark. The app does not invent settings URLs, render fake service login screens, or request real credentials. For a real password change, the instructions explicitly require a different password from a trusted password manager, not the generated `DEMO-` value.
 
-Automatic lock and helpful guidance switches update `settings` in memory. Their defaults are enabled, but they do not implement actual locking or account security. Short articles in `data/articles.ts` explain unique passwords, 2FA, and passkeys with concrete examples. Reloading restores the initial fixtures and preferences.
+`data/passwords.ts` retains the educational generator: predictable 20-character examples with letters, numbers, and symbols, prefixed with `DEMO-`. A counter and exclusion list ensure fresh examples within the demonstration; this is uniqueness for the demo, not cryptographic security.
 
-## Routes
+`PasswordDisplay` supports reveal/hide and copying the example. Copy success is shown only when clipboard writing succeeds; unavailable access or an error requires manual copying and does not show a false success. Transient reveal/copy feedback resets when the value changes or the screen remounts.
 
-Hash navigation supports browser history and direct links without server rewrite configuration. `Route` and `ROUTE_PATHS` define the complete screen structure. Unknown or malformed routes fall back to Vault; missing account IDs show a return action.
+Success reports **Demo action completed**, displays historical before/after relationships and actual summary changes, and explains that JU Secure did not change or verify a real-service password. It offers an optional next contextual fix or Back to Vault. Missing or already-safe accounts have return actions instead of dead ends.
 
-| Area | Route | Current implementation |
+## Retained interactions
+
+Add account uses fictional service/user details and defaults to a unique generated example. Selecting an existing demo value immediately shows its exact matching accounts and a unique alternative. A deliberate **Keep this password** confirmation is required to save a duplicate; changing the selection resets that confirmation.
+
+This flow opts into `add-account.detectDemoReuse`. Matching fake values join an existing explicit group or form a collision-safe `demo-reuse-*` group. Matching safe/weak accounts become primarily reused while keeping their independent strength fields. Resolving a newly added reused account can therefore leave a weak final peer weak. Legacy addition/import does not infer reuse without the opt-in flag. Added accounts live only for the visit.
+
+Learn retains short articles about unique passwords, 2FA, and passkeys. Automatic lock and helpful guidance switches update in-memory demo preferences with safe defaults enabled; they do not perform real locking or authentication.
+
+## Routes and navigation
+
+Typed hash routes support browser history and direct reloads on GitHub Pages without server rewrites. A missing hash opens Welcome. Unknown or malformed routes fall back to Vault; missing account IDs provide a return action.
+
+| Area | Route | Behaviour |
 | --- | --- | --- |
-| Onboarding | `#/welcome` | Informational welcome |
+| Onboarding | `#/welcome` | Default entry; **Get started** enters the demo vault |
 | Onboarding | `#/create-vault` | Informational demo entry |
 | Onboarding | `#/import` | Informational entry; no file import |
 | Onboarding | `#/unlock` | Informational entry; no real authentication |
-| Vault | `#/vault` | Full reference overview |
-| Vault | `#/vault/account/:accountId` | Details, reveal/hide, copy, recommended action |
-| Vault | `#/vault/add` | Unique default, immediate reuse guidance, deliberate Keep |
-| Security | `#/security` | Derived overview and contextual recommendations |
-| Security | `#/security/reused/:accountId` | Actual related accounts and next step |
-| Security | `#/security/safer/:accountId` | Generate, copy, cancel, and simulate a change |
-| Security | `#/security/weak/:accountId` | Weak demo issue and recommended next step |
-| Security | `#/security/success` | Actual demo result and updated summary |
-| Learn | `#/learn` | Full basic overview |
-| Learn | `#/learn/:articleId` | Short unique-password, 2FA, and passkey articles |
-| Settings | `#/settings` | Enabled demo preference switches |
+| Vault | `#/vault` | Derived overview, recommendation, account list |
+| Vault | `#/vault/account/:accountId` | Details, reveal/hide, copy, contextual fix |
+| Vault | `#/vault/add` | Unique default, reuse guidance, deliberate Keep |
+| Security | `#/security` | Derived summary, all reuse groups, weak accounts |
+| Security | `#/security/reused/:accountId` | Account-specific reuse explanation and fix |
+| Security | `#/security/safer/:accountId` | Prepare, service instructions, explicit confirmation |
+| Security | `#/security/weak/:accountId` | Weak-password explanation and fix |
+| Security | `#/security/success` | Historical demo result and optional next action |
+| Learn | `#/learn` | Learning overview |
+| Learn | `#/learn/:articleId` | Short learning article |
+| Settings | `#/settings` | Demo preference switches |
 
-Exactly four primary navigation sections exist. Subscreens inherit their parent section. Onboarding routes are outside primary navigation and provide a return to the demo Vault. Route changes reset document scrolling, update the page title, and focus the main content for keyboard and assistive-technology users.
+Exactly four primary sections exist: Vault, Security, Learn, and Settings. Subscreens inherit their parent section. Onboarding routes sit outside the primary navigation. Route changes reset document scrolling, update the page title, and focus the main content for keyboard and assistive-technology users.
 
-## Design
+## Design and behaviour rationale
 
-`styles/tokens.css` centralizes colors, type, spacing, radii, and app dimensions. The viewport uses a 390px maximum width with normal document scrolling. A fixed bottom navigation aligns with the app. Vault's magenta plus button floats above it in a transparent wrapper without a rectangular background or border; the wrapper does not intercept clicks outside the button. End padding keeps the final account accessible.
+`styles/tokens.css` retains Emma's colours, typography, spacing, radii, and app dimensions. The flat viewport has a 390px maximum width and normal document scrolling. Fixed bottom navigation aligns with the app; end padding keeps the last account accessible. The magenta add button floats in a transparent wrapper without a phone frame, decorative outer border, or rectangular overlay.
 
-Reusable components include buttons, text actions, cards, notices, account/status cards, security summary/issues, password display, page header, navigation, settings rows, toggles, Learn cards, and a floating action. Semantic buttons, worded statuses, visible focus, labeled switches, and live copy/simulation feedback are built into these components.
+Reusable semantic components provide worded statuses, visible focus, labelled switches, account/group visuals, and live feedback. Short descriptions are the default; expandable inline explanations preserve educational material without requiring every user to read it.
 
-Password health combines derived totals with a one-account-at-a-time explanation. A separate primary recommendation carries the active fix action; aggregate Security categories stay secondary. The bottom-navigation Security badge derives from `summary.needsAttention`, includes its meaning in the button's accessible label, and disappears at zero.
-
-The internal 15 Emma principles live in `data/emmaPrinciples.ts`. Fogg's motivation, ability, and trigger rationale appears indirectly through personally relevant explanations, one recommended action, and contextual guidance. Neither the principles nor theory are rendered as application screens.
-
-## Internal Fogg audit
-
-| Principle | Implementation |
+| Fogg element | Design evidence |
 | --- | --- |
-| Motivation: why care? | Actual affected account names, possible consequences, and historical progress show what one change improves. Calm copy avoids blame or exaggerated certainty. |
-| Ability: make it easy | One prepared unique example, safe defaults, an explicit checklist, optional copying, and one simulation action remove technical decisions. |
-| Trigger: what now? | Vault, Security, account details, issue screens, Add account reuse guidance, the attention badge, and optional next-fix feedback point directly to an available action. |
+| Motivation | Actual accounts sharing the same password and a calm consequence explanation make the risk concrete. Success shows what one action changed. The interface does not rank accounts by presumed personal importance. |
+| Ability | A prepared unique example, safe defaults, copying, regeneration, clear manual service guidance, and one explicit demo confirmation reduce technical decisions. |
+| Trigger / Prompt | A service-specific fix button appears beside the detected problem; the optional next-fix action follows completion. Explanations primarily support motivation, while buttons supply the prompt. |
 
-Audit the loop from Vault through Spotify's explanation, prepared password, simulation, success, optional next fix, and Vault. “Not now” must preserve the unresolved account and its reminder. After normalization, feedback must distinguish still-shared peers, newly unique peers, and peers still needing stronger passwords; the fixed count follows actual attention reduction. With no unresolved issues, recommendations and the badge disappear. Add account must require a new Keep confirmation after any value change, and its unique alternative must avoid every existing demo value.
+The internal Emma principles in `data/emmaPrinciples.ts` remain design guidance rather than application screens. The reported user-testing findings inform these design choices; no quantitative research results or claims of a new evaluation are introduced.
 
-There are no analytics, scoring, gamification, chatbots, sharing, payments, administration, real auth integrations, browser integrations, backend services, or persistent credential storage. Password values used by the prototype are fictitious examples held in memory.
+## Validation and publication
+
+Use Node **24.19.0** and frozen installation via `npm ci`. `npm test` validates reducer/domain invariants and manual service guidance; `npm run build` checks TypeScript and creates the production output. `npm run test:e2e` uses Playwright **1.58.2** to exercise the browser flows and responsive layouts. In the cloud, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`; elsewhere install the Playwright Chromium browser first.
+
+Required interaction checks include unchanged state before explicit confirmation, cancellation/navigation without resolution, accurate multi-member and two-member normalization, retained weak strength, clipboard failure without false success, all group members selectable, and reset after reload. Manual visual checks cover keyboard access, mobile widths, desktop centering, bottom-navigation clearance, and no horizontal overflow.
+
+Vite uses `/ju-secure-final/`. The GitHub Actions Pages workflow runs unit tests and Playwright browser tests before building on `main`, uploads `dist`, and deploys with Pages/OIDC permissions. It installs Chromium using `npx playwright install --with-deps chromium`. Repository Pages source must be **GitHub Actions**. The intended URL is `https://axerob.github.io/ju-secure-final/`; a successful workflow and a live-site check are required before claiming publication. Local build success alone does not establish deployment.

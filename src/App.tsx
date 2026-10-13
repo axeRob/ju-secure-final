@@ -24,7 +24,7 @@ export function App() {
   const [focusNewestAccount, setFocusNewestAccount] = useState(false);
   const [deferredAccountId, setDeferredAccountId] = useState<string | null>(null);
   const navigate = (next: Route) => {
-    if (next.screen === 'reused-password' || next.screen === 'weak-password') {
+    if (next.screen === 'reused-password' || next.screen === 'weak-password' || next.screen === 'safer-password') {
       if (route.screen === 'vault' || route.screen === 'security' || route.screen === 'account' || route.screen === 'success') flowOrigin.current = route;
     }
     if (next.screen === 'reused-password' || next.screen === 'weak-password' || next.screen === 'safer-password') setDeferredAccountId(null);
@@ -44,7 +44,7 @@ export function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     const title = mainRef.current?.querySelector('h1')?.textContent;
-    document.title = `${title || 'JU Secure'} · JU Secure`;
+    document.title = `${title || 'JU Secure'} · JU Secure – Final Prototype`;
     if (firstRender.current) { firstRender.current = false; return; }
     mainRef.current?.focus({ preventScroll: true });
   }, [route]);
@@ -56,7 +56,7 @@ export function App() {
       }}>Skip to content</a>
       <header className="brand-header">
         <div className="brand"><ShieldCheck size={23} strokeWidth={1.8} aria-hidden="true" /><span><strong>JU</strong> Secure</span></div>
-        <span className="demo-badge">Demo</span>
+        <span className="demo-badge">Final demo</span>
       </header>
       <main id="main-content" className="page-content" ref={mainRef} tabIndex={-1}>
         {route.screen === 'vault' ? <Vault navigate={navigate} focusNewestAccount={focusNewestAccount} deferredAccountId={deferredAccountId} />
@@ -67,7 +67,7 @@ export function App() {
           : route.screen === 'add-account' ? <AddAccount navigate={navigate} onAdded={finishAddingAccount} />
           : route.screen === 'learn-article' ? <LearnArticle articleId={route.articleId} navigate={navigate} />
           : route.screen === 'reused-password' || route.screen === 'weak-password' ? <SecurityProblem accountId={route.accountId} navigate={navigate} onCancel={() => deferSecurityFix(route.accountId)} onBack={returnFromSecurityFlow} />
-          : route.screen === 'safer-password' ? <SaferPassword key={route.accountId} accountId={route.accountId} navigate={navigate} onCancel={() => deferSecurityFix(route.accountId)} />
+          : route.screen === 'safer-password' ? <SaferPassword key={route.accountId} accountId={route.accountId} navigate={navigate} onCancel={() => deferSecurityFix(route.accountId)} onBack={returnFromSecurityFlow} />
           : route.screen === 'success' ? <SecuritySuccess navigate={navigate} />
           : <RouteShell route={route} navigate={navigate} />}
       </main>

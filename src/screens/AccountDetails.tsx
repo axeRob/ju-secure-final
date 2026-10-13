@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Card, InfoCard, PageHeader, PasswordDisplay, PrimaryButton, StatusPill } from '../components/index.ts';
+import { ReuseGroup, WhyItMatters } from '../components/ReuseGroup.tsx';
 import { useAppState } from '../state/AppContext.tsx';
 import { getRelatedAccounts } from '../state/security.ts';
 import type { Route } from '../routes.ts';
@@ -15,24 +16,26 @@ export function AccountDetails({ accountId, navigate }: { accountId: string; nav
   const related = getRelatedAccounts(state.accounts, account.id);
   return (
     <>
-      <PageHeader title="Account details" subtitle="The essentials, all in one place." onBack={() => navigate({ screen: 'vault' })} />
+      <PageHeader title="Account details" subtitle="A fictional account in your demo vault." onBack={() => navigate({ screen: 'vault' })} />
       <Card className="account-details">
-        <span className="service-mark detail-mark" aria-hidden="true">{account.initial}</span>
+        <span className={`service-mark detail-mark service-${account.serviceName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} aria-hidden="true">{account.initial}</span>
         <h2>{account.serviceName}</h2><p>{account.username}</p><StatusPill status={account.status} />
-        <PasswordDisplay value={account.demoPassword} />
+        <PasswordDisplay label="Demo password" value={account.demoPassword} />
       </Card>
-      <InfoCard title={account.status === 'safe' ? 'This account looks good' : 'Needs attention'}>
-        {account.status === 'safe' ? <p>This demo account has its own strong password.</p> : account.issueType === 'reused' ? <>
-          <p>This password is also used by:</p>
-          <ul className="related-account-list" aria-label="Other accounts sharing this password">{related.map(item => <li key={item.id}>{item.serviceName}</li>)}</ul>
-          <p>If one of these accounts is exposed, the same password could be tried on the others.</p>
-        </> : <p>This demo password is easy to guess. A stronger one would help protect this account.</p>}
-      </InfoCard>
+      {account.status === 'safe' && <InfoCard title="This demo account looks good"><p>It has its own strong demo password.</p></InfoCard>}
       {account.status !== 'safe' && <Card className="recommendation-card account-recommendation">
         <span className="recommendation-eyebrow">Recommended action</span>
         <h2 className="recommendation-title">Give {account.serviceName} {account.issueType === 'reused' ? 'its own' : 'a stronger'} password.</h2>
-        <PrimaryButton className="account-security-action" onClick={() => navigate({ screen: account.issueType === 'reused' ? 'reused-password' : 'weak-password', accountId: account.id })}>Fix this password <ArrowRight size={17} aria-hidden="true" /></PrimaryButton>
+        {account.issueType === 'reused' && <ReuseGroup accounts={[account, ...related]} />}
+        <p className="recommendation-description">{account.issueType === 'reused'
+          ? 'If one password is exposed, someone could try it on the other accounts.'
+          : 'This demo password is easy to guess.'}</p>
+        <PrimaryButton className="account-security-action" onClick={() => navigate({ screen: 'safer-password', accountId: account.id })}>Fix {account.serviceName} password <ArrowRight size={17} aria-hidden="true" /></PrimaryButton>
+        <WhyItMatters><p>{account.issueType === 'reused'
+          ? 'A unique password limits the effect of an exposed password to one account. JU Secure guides a separate change on the service; it only updates fictional data here.'
+          : 'A long, unique password is harder to guess. This demo prepares an example and explains how to change a password on the service.'}</p></WhyItMatters>
       </Card>}
+      <p className="demo-footnote">Only fictional demo data is shown. External password changes are not verified.</p>
     </>
   );
 }
