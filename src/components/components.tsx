@@ -142,7 +142,7 @@ export function SecurityIssueCard({ title, description, actionLabel, onAction, p
 }
 
 export function PasswordDisplay({
-  label = 'Demo password',
+  label = 'Password',
   value = 'DEMO-JU-Secure-24!',
   defaultVisible = false,
   hideCopy = false,
@@ -183,12 +183,12 @@ export function PasswordDisplay({
     } catch {
       if (request !== copyRequest.current) return
       setCopied(false)
-      setCopyStatus(visible ? 'Copy unavailable. Select the demo password to copy it manually.' : 'Copy unavailable. Show the demo password to copy it manually.')
+      setCopyStatus(visible ? 'Copy unavailable. Select the password to copy it manually.' : 'Copy unavailable. Show the password to copy it manually.')
       return
     }
     if (request !== copyRequest.current) return
     setCopied(true)
-    setCopyStatus('Fictitious demo value copied.')
+    setCopyStatus('Password copied.')
     feedbackTimer.current = setTimeout(() => {
       setCopied(false)
       setCopyStatus('')
@@ -200,7 +200,7 @@ export function PasswordDisplay({
     <div className="password-display">
       <span className="password-label">{label}</span>
       <div className="password-value-row">
-        <span className="password-value" role="img" aria-label={visible ? `Fictitious demo password: ${value}` : 'Hidden fictitious demo password'}>
+        <span className="password-value" role="img" aria-label={visible ? `Password: ${value}` : 'Hidden password'}>
           {visible ? value : '•••• •••• •••• ••••'}
         </span>
         <div className="password-controls">
@@ -214,7 +214,6 @@ export function PasswordDisplay({
           </button>}
         </div>
       </div>
-      <span className="demo-label">Fictitious demo value · {visible ? 'Visible' : 'Hidden'}</span>
       <span className="password-copy-status" role="status" aria-live="polite">{copyStatus}</span>
     </div>
   )
@@ -315,5 +314,5 @@ export function LearnCard({ title, description, children, onClick }: {
 }
 
 export function FloatingActionButton({ onClick }: { onClick: () => void }) {
-  return <div className="floating-action-area"><button type="button" className="floating-action-button" aria-label="Add demo account" onClick={onClick}><Plus size={25} aria-hidden="true" /></button></div>
+  return <div className="floating-action-area"><button type="button" className="floating-action-button" aria-label="Add account" onClick={onClick}><Plus size={25} aria-hidden="true" /></button></div>
 }

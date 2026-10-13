@@ -20,9 +20,9 @@ export function Security({ navigate }: { navigate: (route: Route) => void }) {
     <>
       <PageHeader title="Security" subtitle="Choose the account that matters to you." />
       <div className="security-intro">
-        <span className="section-eyebrow">DEMO VAULT AT A GLANCE</span>
-        <h2>{summary.needsAttention ? 'One account at a time.' : 'Your demo accounts look good.'}</h2>
-        <p>{summary.safe} demo {summary.safe === 1 ? 'account uses' : 'accounts use'} strong, unique passwords.
+        <span className="section-eyebrow">YOUR VAULT AT A GLANCE</span>
+        <h2>{summary.needsAttention ? 'One account at a time.' : 'Your accounts look good.'}</h2>
+        <p>{summary.safe} {summary.safe === 1 ? 'account uses' : 'accounts use'} strong, unique passwords.
           {summary.needsAttention > 0 && ` ${summary.needsAttention} ${summary.needsAttention === 1 ? 'needs' : 'need'} attention.`}</p>
       </div>
       <div className="screen-stack" data-testid="security-issues-summary">
@@ -47,7 +47,7 @@ export function Security({ navigate }: { navigate: (route: Route) => void }) {
           <div className="screen-stack">
             {weakAccounts.map(account => <Card key={account.id} className="weak-issue-card">
               <h3>{account.serviceName}</h3>
-              <p className="recommendation-description">This demo password is easy to guess.</p>
+              <p className="recommendation-description">This password is easy to guess.</p>
               <PrimaryButton onClick={() => navigate({ screen: 'safer-password', accountId: account.id })}>
                 Fix {account.serviceName} password <ArrowRight size={16} aria-hidden="true" />
               </PrimaryButton>
@@ -55,9 +55,8 @@ export function Security({ navigate }: { navigate: (route: Route) => void }) {
             </Card>)}
           </div>
         </section>}
-        {summary.needsAttention === 0 && <SuccessCard title="Demo fixes complete"><p>Every fictional account has a unique, strong demo password.</p></SuccessCard>}
+        {summary.needsAttention === 0 && <SuccessCard title="All passwords look good"><p>Every account has a strong, unique password.</p></SuccessCard>}
       </div>
-      <p className="demo-footnote">Status reflects this demo only. Changes on external services are not verified.</p>
     </>
   );
 }

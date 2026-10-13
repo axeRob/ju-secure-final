@@ -27,10 +27,10 @@ export function Vault({ navigate, focusNewestAccount = false, deferredAccountId 
   const related = recommended ? getRelatedAccounts(state.accounts, recommended.id) : [];
   return (
     <>
-      <PageHeader title="Vault" subtitle="Fictional accounts. Safer password habits." />
+      <PageHeader title="Vault" subtitle="Your accounts, all in one place." />
       <SecuritySummary summary={summary} />
       {recommended && <Card className="recommendation-card" data-testid="vault-recommendation">
-        <span className="recommendation-eyebrow">{deferred ? 'Still needs attention' : 'Try a demo fix'}</span>
+        <span className="recommendation-eyebrow">{deferred ? 'Still needs attention' : 'Recommended action'}</span>
         <h2 className="recommendation-title">{recommended.issueType === 'reused'
           ? `Give ${recommended.serviceName} its own password.`
           : `${recommended.serviceName} needs a stronger password.`}</h2>
@@ -45,16 +45,14 @@ export function Vault({ navigate, focusNewestAccount = false, deferredAccountId 
         <TextAction onClick={() => navigate({ screen: 'security' })}>Choose another account</TextAction>
         <WhyItMatters><p>{recommended.issueType === 'reused'
           ? 'A unique password keeps an exposed password from being reused on your other accounts. Choose the account that matters most to you.'
-          : 'Long, unique passwords are harder to guess. This demo prepares an example and explains the separate change on the service.'}</p></WhyItMatters>
+          : 'Long, unique passwords are harder to guess and keep one exposed password from working across accounts.'}</p></WhyItMatters>
       </Card>}
       <section className="accounts-section" aria-labelledby="accounts-heading">
-        <div className="section-heading"><h2 id="accounts-heading">Demo accounts</h2><span className="count-label">{summary.total} accounts</span></div>
+        <div className="section-heading accounts-heading"><h2 id="accounts-heading">Your accounts</h2><span className="count-label">{summary.total} accounts</span><FloatingActionButton onClick={() => navigate({ screen: 'add-account' })} /></div>
         <div className="account-list" ref={listRef}>{state.accounts.map(account => (
           <AccountCard key={account.id} account={account} onClick={() => navigate({ screen: 'account', accountId: account.id })} />
         ))}</div>
       </section>
-      <p className="demo-footnote">Made for learning. All accounts are demo data.</p>
-      <FloatingActionButton onClick={() => navigate({ screen: 'add-account' })} />
     </>
   );
 }

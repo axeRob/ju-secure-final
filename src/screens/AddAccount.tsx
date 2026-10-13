@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Check, Sparkles } from 'lucide-react';
-import { Card, InfoCard, PageHeader, PasswordDisplay, PrimaryButton, SecondaryButton, WarningCard } from '../components/index.ts';
+import { Card, PageHeader, PasswordDisplay, PrimaryButton, SecondaryButton, WarningCard } from '../components/index.ts';
 import { generateDemoPassword, isStrongDemoPassword } from '../data/passwords.ts';
 import type { Route } from '../routes.ts';
 import { useAppState } from '../state/AppContext.tsx';
@@ -13,7 +13,7 @@ const WEAK_DEMO_PASSWORDS = ['DEMO-123', 'DEMO-abc'] as const;
 
 export function AddAccount({ navigate, onAdded }: { navigate: (route: Route) => void; onAdded: () => void }) {
   const { state, dispatch } = useAppState();
-  const [serviceName, setServiceName] = useState('Demo Study App');
+  const [serviceName, setServiceName] = useState('Study App');
   const [username, setUsername] = useState('emma@example.com');
   const [passwordChoice, setPasswordChoice] = useState<PasswordChoice>('generated');
   const [generatedPassword, setGeneratedPassword] = useState(() =>
@@ -64,7 +64,7 @@ export function AddAccount({ navigate, onAdded }: { navigate: (route: Route) => 
     const demoService = serviceName.trim();
     const demoUsername = username.trim();
     if (!demoService || !demoUsername) {
-      setFormError('Add a demo app name and a demo email or username.');
+      setFormError('Add an app name and a made-up email or username.');
       return;
     }
     if (reuseNeedsConfirmation) {
@@ -97,23 +97,21 @@ export function AddAccount({ navigate, onAdded }: { navigate: (route: Route) => 
 
   return (
     <>
-      <PageHeader title="Add account" subtitle="One more demo account, one safe place." onBack={() => navigate({ screen: 'vault' })} />
+      <PageHeader title="Add account" subtitle="Keep your accounts together." onBack={() => navigate({ screen: 'vault' })} />
       <div className="screen-stack">
-        <InfoCard title="Try a demo account">
-          <p>Use made-up details only. This prototype does not connect to accounts or store real credentials.</p>
-        </InfoCard>
         <form className="demo-account-form screen-stack" onSubmit={addAccount} autoComplete="off">
           <Card className="screen-stack">
+            <p className="form-help account-details-help" id="account-details-help">Use made-up details</p>
             <div className="form-field">
               <label className="form-label" htmlFor="demo-service">Website or app</label>
               <input className="form-input" id="demo-service" name="demo-service" value={serviceName}
-                placeholder="Demo Study App" maxLength={60} required autoComplete="off"
+                placeholder="Study App" maxLength={60} required autoComplete="off" aria-describedby="account-details-help"
                 onChange={event => { setServiceName(event.target.value); setFormError(''); }} />
             </div>
             <div className="form-field">
               <label className="form-label" htmlFor="demo-username">Email / username</label>
               <input className="form-input" id="demo-username" name="demo-username" value={username}
-                placeholder="emma@example.com" maxLength={80} required autoComplete="off" spellCheck={false}
+                placeholder="emma@example.com" maxLength={80} required autoComplete="off" spellCheck={false} aria-describedby="account-details-help"
                 onChange={event => { setUsername(event.target.value); setFormError(''); }} />
             </div>
             <fieldset className="password-options">
@@ -128,46 +126,45 @@ export function AddAccount({ navigate, onAdded }: { navigate: (route: Route) => 
                 aria-pressed={passwordChoice === 'existing-demo'} onClick={() => {
                   setPasswordChoice('existing-demo'); setKeptDemoPassword(null); setFormError('');
                 }}>
-                <span>I already have a password</span>
+                <span>Choose an existing password</span>
                 {passwordChoice === 'existing-demo' && <Check size={17} aria-hidden="true" />}
               </button>
             </fieldset>
             {passwordChoice === 'generated' ? (
               <div>
-                <PasswordDisplay value={generatedPassword} label="Generated demo password" defaultVisible />
-                <p className="form-help">A strong, unique demo value is selected for you. You do not need to remember it.</p>
+                <PasswordDisplay value={generatedPassword} label="Generated password" defaultVisible />
+                <p className="form-help">Strong and unique, with no settings to choose.</p>
               </div>
             ) : (
               <div className="form-field">
-                <label className="form-label" htmlFor="existing-demo-password">Choose a demo password</label>
+                <label className="form-label" htmlFor="existing-demo-password">Choose a sample password</label>
                 <select className="form-input" id="existing-demo-password" value={existingDemoPassword}
                   onChange={event => {
                     setExistingDemoPassword(event.target.value); setKeptDemoPassword(null); setFormError('');
                   }} aria-describedby="existing-demo-help">
                   {[...existingOptions].map(([password, names]) => (
                     <option key={password} value={password}>
-                      {names.length ? `${names.join(', ')} — existing demo value` : `${password} — weak demo example`}
+                      {names.length ? `${names.join(', ')} — existing password` : `${password} — easy to guess`}
                     </option>
                   ))}
                 </select>
-                <p className="form-help" id="existing-demo-help">Choose only from made-up examples. JU Secure has already prepared a unique password for you.</p>
-                {!matches.length && !existingIsStrong && <p className="form-help">This demo example is easy to guess. The account will need attention until you make it stronger.</p>}
+                <p className="form-help" id="existing-demo-help">Select an existing password to see how reuse is detected.</p>
+                {!matches.length && !existingIsStrong && <p className="form-help">This password is easy to guess. The account will need attention.</p>}
               </div>
             )}
           </Card>
           {matches.length > 0 && <div className="reuse-warning-region" ref={reuseWarningRef}><WarningCard className="add-reuse-warning" title="This password is already used">
             <p aria-live="polite">You already use this password on {matches.length} other {matches.length === 1 ? 'account' : 'accounts'}.</p>
-            <ul className="reuse-account-list" aria-label="Accounts using this demo password">
+            <ul className="reuse-account-list" aria-label="Accounts using this password">
               {matches.map(account => <li key={account.id}>{account.serviceName}</li>)}
             </ul>
-            <p>Using it again means another demo account would share the same password.</p>
             <div className="reuse-recommendation"><span className="section-eyebrow">Recommended</span><p>Use a unique password instead. We’ll create it for you.</p></div>
             <div className="reuse-warning-actions">
               <PrimaryButton onClick={selectGeneratedPassword}>Use a unique password</PrimaryButton>
               <SecondaryButton onClick={() => { setKeptDemoPassword(existingDemoPassword); setFormError(''); }}
                 aria-pressed={keptDemoPassword === existingDemoPassword}>Keep this password</SecondaryButton>
             </div>
-            {keptDemoPassword === existingDemoPassword && <p className="reuse-keep-confirmation" role="status">You can keep this demo password. The new account will need attention because it shares a password.</p>}
+            {keptDemoPassword === existingDemoPassword && <p className="reuse-keep-confirmation" role="status">The account will be marked as needing attention.</p>}
           </WarningCard></div>}
           {formError && <p className="form-error" role="alert">{formError}</p>}
           {reuseNeedsConfirmation && <p className="form-help add-account-pending-help" id="reuse-save-help">Choose the unique password or confirm that you want to keep sharing before adding this account.</p>}

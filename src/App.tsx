@@ -56,7 +56,7 @@ export function App() {
       }}>Skip to content</a>
       <header className="brand-header">
         <div className="brand"><ShieldCheck size={23} strokeWidth={1.8} aria-hidden="true" /><span><strong>JU</strong> Secure</span></div>
-        <span className="demo-badge">Final demo</span>
+        <span className="prototype-identification">Interactive prototype · Sample accounts</span>
       </header>
       <main id="main-content" className="page-content" ref={mainRef} tabIndex={-1}>
         {route.screen === 'vault' ? <Vault navigate={navigate} focusNewestAccount={focusNewestAccount} deferredAccountId={deferredAccountId} />

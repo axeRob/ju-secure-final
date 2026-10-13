@@ -3,10 +3,10 @@ import { Card, PageHeader, PrimaryButton } from '../components/index.ts';
 import type { Route } from '../routes.ts';
 
 const entryScreens = {
-  welcome: { title: 'Welcome', subtitle: 'JU Secure – Final Prototype', heading: 'Safer passwords, one account at a time.', description: 'See which fictional accounts share a password and practise giving each one its own.', action: 'Get started' },
-  'create-vault': { title: 'Demo vault', subtitle: 'Ready to explore.', heading: 'Your demo vault is ready.', description: 'Explore fictional accounts without registration or a master password.', action: 'Open demo vault' },
-  'import-passwords': { title: 'Demo accounts', subtitle: 'A simple way to get started.', heading: 'Explore the sample accounts.', description: 'The demo uses fictional accounts. No files or real passwords are imported.', action: 'Open demo vault' },
-  unlock: { title: 'Welcome back', subtitle: 'Open your demo vault.', heading: 'Continue exploring.', description: 'No password is needed. Demo accounts and preferences reset when you reload.', action: 'Open demo vault' },
+  welcome: { title: 'Welcome', subtitle: 'JU Secure – Final Prototype', heading: 'Safer passwords, one account at a time.', description: 'See which accounts share a password and give each one its own.', action: 'Get started' },
+  'create-vault': { title: 'Your vault', subtitle: 'Ready to explore.', heading: 'Your vault is ready.', description: 'Explore your accounts and improve your password habits.', action: 'Open vault' },
+  'import-passwords': { title: 'Your accounts', subtitle: 'A simple way to get started.', heading: 'Explore the sample accounts.', description: 'Your accounts are ready to explore.', action: 'Open vault' },
+  unlock: { title: 'Welcome back', subtitle: 'Open your vault.', heading: 'Continue exploring.', description: 'Return to your accounts and choose your next step.', action: 'Open vault' },
 };
 
 export function RouteShell({ route, navigate }: { route: Route; navigate: (route: Route) => void }) {
@@ -19,6 +19,5 @@ export function RouteShell({ route, navigate }: { route: Route; navigate: (route
       <h2>{content.heading}</h2><p>{content.description}</p>
       <PrimaryButton onClick={openVault}>{content.action} <ArrowRight size={17} aria-hidden="true" /></PrimaryButton>
     </Card>
-    <p className="welcome-demo-note">Educational demo · Fictional accounts only<br />No registration or real credentials needed.</p>
   </div>;
 }

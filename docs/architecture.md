@@ -28,7 +28,7 @@ Security renders all active groups and their actual members, with a contextual f
 
 `resolve-issue` saves a valid fresh supplied `demoPassword`, or generates a fresh example if needed. It marks the selected account strong and safe and removes it from its reused group. Other accounts keep their passwords. Group normalization makes a strong final member safe; a weak final member retains its strength issue. `status` and `issueType` describe the primary displayed issue, while `passwordStrength` preserves strength independently.
 
-`lastResolution` captures the selected account, original issue, related names/IDs, before/after summaries, and the original peers' resulting statuses/groups. Success uses historical snapshots, so later changes cannot rewrite an earlier comparison. The number of issues cleared is `before.needsAttention - after.needsAttention`; it can exceed one when a final reuse relationship disappears.
+`lastResolution` captures the selected account, original issue, related names/IDs, before/after summaries, and the original peers' resulting statuses/groups. The optional success group comparison uses historical snapshots, so later changes cannot rewrite an earlier comparison. Overall before/after health totals and an issue-count panel are not displayed on success; the current password-health summary remains available in Vault.
 
 Resolving Spotify produces **4 safe / 14 reused / 6 weak**. Resolving Google next gives **5 / 13 / 6**; resolving Netflix gives **7 / 11 / 6**, because Instagram no longer shares its password with another account. In the two-member Dropbox/Adobe group, resolving one account removes both reuse warnings without changing the other's password. Unrelated groups and weak accounts retain their issues.
 
@@ -36,25 +36,25 @@ The reducer also supports account addition/import, filters, demo settings, onboa
 
 ## Password-change journey
 
-The contextual fix opens one prepared password screen rather than requiring the user to read a separate risk screen first. The account name, generated example, short demo warning, password controls, and continue action appear first. Full group context, the concise risk explanation, and optional expanded education remain below so a user can act immediately or read further.
+The contextual fix opens one compact password screen rather than requiring the user to read a separate risk screen first. The selected account, short explanation, generated example, password controls, and **Use this password** action are immediately available. Additional group context and security education stay collapsed under **Why does this matter?** after the actions. This returns to Emma's simple prepare-and-complete interaction while preserving Karim-inspired direct actions.
 
-The route `/security/safer/:accountId` has two local screen steps: **Prepare a demo password**, then **Service guidance and demo confirmation**. Their actions follow three logical stages:
+The route `/security/safer/:accountId` has one preparation screen. Its actions follow three logical stages:
 
 | Stage | Actions and effect |
 | --- | --- |
-| Prepare | Display a fresh unique `DEMO-` example; reveal, copy, generate another, or continue. Account state is unchanged. |
-| Service instructions | Explain that JU Secure cannot change the external account; give short instructions to find the service's own password settings. Account state is unchanged. |
-| Confirm | Ask whether the user changed the password on the website. Only **Yes, mark as completed in this demo** dispatches `resolve-issue` and opens success. **Not yet** leaves the account unchanged. |
+| Prepare | Display a fresh unique `DEMO-` example; reveal, copy, generate another, or read optional education. Account state is unchanged. |
+| Complete | Only **Use this password** dispatches `resolve-issue` and opens success. The update affects the sample account in memory. |
+| Next action | Show a short password-updated confirmation and the next contextual fix; group comparison remains optional. |
 
-Preparation and step selection live in screen state. Cancelling, leaving the route, browser back, and generating/copying an example do not dispatch resolution. In-app back returns from instructions to preparation, then to the flow's origin. Completion is a user-reported fictional update, never a verified external change. There is no timer that silently completes an action.
+The prepared example lives in screen state. Cancelling, leaving the route, browser back, and generating/copying an example do not dispatch resolution. In-app back returns to the flow's origin. Completion is an explicit sample-state update, never a verified external change. There is no timer that silently completes an action.
 
-`data/serviceGuidance.ts` supplies manual navigation hints, including provider sign-in and passkey cases. The user opens a service separately through its own app, a known website, or a saved bookmark. The app does not invent settings URLs, render fake service login screens, or request real credentials. For a real password change, the instructions explicitly require a different password from a trusted password manager, not the generated `DEMO-` value.
+The external-service guidance, provider instructions, website-change question, and extra confirmation stage have been removed. No external service is contacted, and the app does not collect real credentials or imply that its action changes a real password.
 
 `data/passwords.ts` retains the educational generator: predictable 20-character examples with letters, numbers, and symbols, prefixed with `DEMO-`. A counter and exclusion list ensure fresh examples within the demonstration; this is uniqueness for the demo, not cryptographic security.
 
 `PasswordDisplay` supports reveal/hide and copying the example. Copy success is shown only when clipboard writing succeeds; unavailable access or an error requires manual copying and does not show a false success. Transient reveal/copy feedback resets when the value changes or the screen remounts.
 
-Success reports **Demo action completed**, displays historical before/after relationships and actual summary changes, and explains that JU Secure did not change or verify a real-service password. It offers an optional next contextual fix or Back to Vault. Missing or already-safe accounts have return actions instead of dead ends.
+Success gives a short **Password updated** message and describes the selected sample account's changed reuse relationship. The next contextual fix is the prominent action, followed by a smaller option to return to Vault. Historical group comparison stays collapsed below under **See what changed**; repeated disclaimers and overall health statistics are removed. Missing or already-safe accounts have return actions instead of dead ends.
 
 ## Retained interactions
 
@@ -79,9 +79,9 @@ Typed hash routes support browser history and direct reloads on GitHub Pages wit
 | Vault | `#/vault/add` | Unique default, reuse guidance, deliberate Keep |
 | Security | `#/security` | Derived summary, all reuse groups, weak accounts |
 | Security | `#/security/reused/:accountId` | Account-specific reuse explanation and fix |
-| Security | `#/security/safer/:accountId` | Prepare, service instructions, explicit confirmation |
+| Security | `#/security/safer/:accountId` | Generated password, optional education, explicit completion |
 | Security | `#/security/weak/:accountId` | Weak-password explanation and fix |
-| Security | `#/security/success` | Historical demo result and optional next action |
+| Security | `#/security/success` | Short success, next action, optional group comparison |
 | Learn | `#/learn` | Learning overview |
 | Learn | `#/learn/:articleId` | Short learning article |
 | Settings | `#/settings` | Demo preference switches |
@@ -92,19 +92,19 @@ Exactly four primary sections exist: Vault, Security, Learn, and Settings. Subsc
 
 `styles/tokens.css` retains Emma's colours, typography, spacing, radii, and app dimensions. The flat viewport has a 390px maximum width and normal document scrolling. Fixed bottom navigation aligns with the app; end padding keeps the last account accessible. The magenta add button floats in a transparent wrapper without a phone frame, decorative outer border, or rectangular overlay.
 
-Reusable semantic components provide worded statuses, visible focus, labelled switches, account/group visuals, and live feedback. Short descriptions are the default; expandable inline explanations preserve educational material without requiring every user to read it.
+Reusable semantic components provide worded statuses, visible focus, labelled switches, account/group visuals, and live feedback. Short descriptions are the default; expandable inline explanations preserve educational material without requiring every user to read it. A single discreet **Interactive prototype · Sample accounts** identification supplies the interface's context without repeated demo banners or lengthy warnings.
 
 | Fogg element | Design evidence |
 | --- | --- |
 | Motivation | Actual accounts sharing the same password and a calm consequence explanation make the risk concrete. Success shows what one action changed. The interface does not rank accounts by presumed personal importance. |
-| Ability | A prepared unique example, safe defaults, copying, regeneration, clear manual service guidance, and one explicit demo confirmation reduce technical decisions. |
+| Ability | A prepared unique example, safe defaults, copying, regeneration, and one explicit completion action reduce technical decisions and steps. Additional explanations are optional. |
 | Trigger / Prompt | A service-specific fix button appears beside the detected problem; the optional next-fix action follows completion. Explanations primarily support motivation, while buttons supply the prompt. |
 
 The internal Emma principles in `data/emmaPrinciples.ts` remain design guidance rather than application screens. The reported user-testing findings inform these design choices; no quantitative research results or claims of a new evaluation are introduced.
 
 ## Validation and publication
 
-Use Node **24.19.0** and frozen installation via `npm ci`. `npm test` validates reducer/domain invariants and manual service guidance; `npm run build` checks TypeScript and creates the production output. `npm run test:e2e` uses Playwright **1.58.2** to exercise the browser flows and responsive layouts. In the cloud, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`; elsewhere install the Playwright Chromium browser first.
+Use Node **24.19.0** and frozen installation via `npm ci`. `npm test` validates reducer/domain invariants; `npm run build` checks TypeScript and creates the production output. `npm run test:e2e` uses Playwright **1.58.2** to exercise the browser flows and responsive layouts. In the cloud, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`; elsewhere install the Playwright Chromium browser first.
 
 Required interaction checks include unchanged state before explicit confirmation, cancellation/navigation without resolution, accurate multi-member and two-member normalization, retained weak strength, clipboard failure without false success, all group members selectable, and reset after reload. Manual visual checks cover keyboard access, mobile widths, desktop centering, bottom-navigation clearance, and no horizontal overflow.
 

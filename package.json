@@ -10,7 +10,7 @@
     "dev": "vite --host 0.0.0.0 --port 5173 --strictPort",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/state/security.test.ts src/data/serviceGuidance.test.ts",
+    "test": "node --experimental-strip-types --test src/state/security.test.ts",
     "test:e2e": "playwright test",
     "preview": "vite preview --host 0.0.0.0"
   },

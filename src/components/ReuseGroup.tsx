@@ -10,7 +10,7 @@ export function ReuseGroup({ accounts }: { accounts: Account[] }) {
       <p className="shared-password-label"><KeyRound size={16} aria-hidden="true" />
         <span>{accounts.length} accounts share the same password</span>
       </p>
-      <ul className="shared-password-accounts" aria-label="Accounts sharing the same demo password">
+      <ul className="shared-password-accounts" aria-label="Accounts sharing the same password">
         {accounts.map(account => {
           const serviceKey = account.serviceName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
           return <li key={account.id}>
