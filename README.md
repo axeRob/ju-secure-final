@@ -10,11 +10,11 @@ The project's reported qualitative findings favour Emma's explanations and visua
 
 - Security shows all five actual reuse groups, with every member available for a contextual fix.
 - Short risk explanations appear first. Additional education expands inline through **Why does this matter?**.
-- A fix action opens an automatically generated unique password, with copy, regeneration, and one prominent **Use this password** action. Additional group context and education stay optional.
+- A fix action opens an automatically generated unique password, with copy controls and **Use unique password** as the primary action, followed by **Generate another** and **Not now**. The primary action uses Karim's sparkle-and-arrow treatment within Emma's layout. Additional group context and education stay optional.
 - A welcome screen provides one prominent **Get started** action into the demo vault.
 - An explicit action updates the selected sample account immediately. Copying, cancelling, or leaving the screen never completes the change.
-- Short success feedback puts the next account's fix first, offers a smaller return to Vault, and keeps the group comparison collapsed under **See what changed**. Overall password health remains in Vault instead of being repeated after each action.
-- One discreet **Interactive prototype · Sample accounts** identification replaces repeated demo banners and lengthy interface disclaimers.
+- Success explains that the selected account now has its own password and shows the changed group in a visible **What changed** comparison before the next fix. A smaller return to Vault keeps stopping easy. Overall password health remains in Vault instead of being repeated after each action.
+- The overview places **Your accounts, all in one place.** directly beneath **JU Secure** in the brand header, preserving the health summary and recommendations without a large Vault page title. Presentation labels are kept out of the interface; the educational scope is documented below.
 
 These are design responses to the supplied findings, not claims that the final iteration has been evaluated. No survey percentages, participant counts, or new research results are invented or displayed.
 
@@ -30,8 +30,8 @@ These are design responses to the supplied findings, not claims that the final i
 
 1. Enter the vault from **Get started**, then select a contextual fix in Vault, Security, or account details.
 2. Review the prepared unique `DEMO-` password, copy it if desired, or generate another.
-3. Choose **Use this password** to update the selected sample account. Cancellation, browser back, copying, and leaving the screen do not complete the action.
-4. Read **Password updated**, then choose the next fix, return to Vault, or expand **See what changed** for the group comparison.
+3. Choose **Use unique password** to update the selected sample account. Cancellation, browser back, copying, and leaving the screen do not complete the action.
+4. Read **Password updated** and the visible **What changed** group comparison, then choose the next fix or return to Vault.
 
 The interaction returns to Emma's simpler pattern, refined with direct contextual actions and user-controlled explanations. There are no external-website instruction screens or extra confirmation stages.
 
@@ -105,8 +105,8 @@ The app uses React, TypeScript, Vite, and Lucide icons. [Architecture and intera
 
 - Open the default welcome screen and enter the vault. Confirm **3 safe / 15 reused / 6 weak** and all five groups in Security; every group member must be selectable.
 - Start Spotify's fix, generate another example, and expand the optional explanation. Copying must not complete the change. Cancel or use browser back and confirm the counts and password are unchanged.
-- Complete Spotify using **Use this password**. In Vault, expect **4 / 14 / 6**; Google, Netflix, and Instagram must still share their previous password. Check the short success message, prominent next action, and optional group comparison.
+- Complete Spotify using **Use unique password**. In Vault, expect **4 / 14 / 6**; Google, Netflix, and Instagram must still share their previous password. Check the own-password confirmation, always-visible **What changed** comparison, and the next action below it.
 - Complete Google next (**5 / 13 / 6**), then Netflix (**7 / 11 / 6**). Instagram should become safe when its last reuse relationship disappears. Other groups and weak issues must remain accurate.
 - Check reveal/copy feedback, Add account's unique default and deliberate reuse confirmation, all Learn articles, Settings, and the four navigation tabs. Reload and confirm the fixtures reset.
 - Check keyboard focus and mobile widths **320, 360, 390, and 430px**, plus desktop: no horizontal overflow, no phone frame, and the last account remains accessible above the bottom navigation.
-- Run unit tests, browser tests, and the build; verify the published Pages site separately after deployment. Present all generated passwords and completed actions as fictional demonstrations.
+- Run unit tests, browser tests, and the build. Verify the published Pages site after deployment, including its header, primary action, and success comparison. Present all generated passwords and completed actions as fictional demonstrations.

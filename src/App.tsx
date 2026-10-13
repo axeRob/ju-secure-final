@@ -44,7 +44,7 @@ export function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     const title = mainRef.current?.querySelector('h1')?.textContent;
-    document.title = `${title || 'JU Secure'} · JU Secure – Final Prototype`;
+    document.title = title ? `${title} · JU Secure` : 'JU Secure';
     if (firstRender.current) { firstRender.current = false; return; }
     mainRef.current?.focus({ preventScroll: true });
   }, [route]);
@@ -56,7 +56,7 @@ export function App() {
       }}>Skip to content</a>
       <header className="brand-header">
         <div className="brand"><ShieldCheck size={23} strokeWidth={1.8} aria-hidden="true" /><span><strong>JU</strong> Secure</span></div>
-        <span className="prototype-identification">Interactive prototype · Sample accounts</span>
+        {route.screen === 'vault' && <p className="brand-introduction">Your accounts, all in one place.</p>}
       </header>
       <main id="main-content" className="page-content" ref={mainRef} tabIndex={-1}>
         {route.screen === 'vault' ? <Vault navigate={navigate} focusNewestAccount={focusNewestAccount} deferredAccountId={deferredAccountId} />

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Check, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Card, InfoCard, PageHeader, PasswordDisplay, PrimaryButton, SecondaryButton, SuccessCard, TextAction } from '../components/index.ts';
 import { ReuseGroup, WhyItMatters } from '../components/ReuseGroup.tsx';
 import { generateDemoPassword } from '../data/passwords.ts';
@@ -68,10 +68,12 @@ export function SaferPassword({ accountId, navigate, onCancel, onBack = onCancel
           <p className="quick-fix-risk">{reused ? 'Give this account its own password to limit reuse risk.' : 'Replace this short or common password with a stronger one.'}</p>
           <PasswordDisplay value={demoPassword} label="Generated password" defaultVisible />
           <p className="password-detail">{demoPassword.length} characters · unique for this account</p>
-          <SecondaryButton onClick={() => setDemoPassword(generateDemoPassword(state.accounts.map(item => item.demoPassword), demoPassword))}>Generate another</SecondaryButton>
         </Card>
         <div className="screen-actions">
-          <PrimaryButton onClick={usePreparedPassword}>Use this password</PrimaryButton>
+          <PrimaryButton className="quick-fix-use" onClick={usePreparedPassword}>
+            <Sparkles size={20} aria-hidden="true" /><span>Use unique password</span><ArrowRight size={20} aria-hidden="true" />
+          </PrimaryButton>
+          <SecondaryButton onClick={() => setDemoPassword(generateDemoPassword(state.accounts.map(item => item.demoPassword), demoPassword))}>Generate another</SecondaryButton>
           <SecondaryButton onClick={onCancel}>Not now</SecondaryButton>
         </div>
         <Card className="quick-fix-explanation">
@@ -98,15 +100,18 @@ export function SecuritySuccess({ navigate }: { navigate: (route: Route) => void
         <Card className="success-feedback">
           <CheckCircle2 className="success-feedback-icon" size={42} strokeWidth={1.5} aria-hidden="true" />
           <h2>{result.serviceName} now has {reused ? 'its own' : 'a stronger'} password.</h2>
-          {reused && result.relatedServiceNames.length > 0 ? <p>{result.serviceName} no longer shares its password with {listNames(result.relatedServiceNames)}.</p> : <p>A longer, unique password makes this account harder to guess.</p>}
+          {reused && result.relatedServiceNames.length > 0 ? <>
+            <p>{result.serviceName} no longer shares its password with {listNames(result.relatedServiceNames)}.</p>
+            <p>If {result.serviceName} has a problem, the password used by the other accounts is still separate.</p>
+          </> : <p>A longer, unique password makes this account harder to guess.</p>}
         </Card>
+        {reused && <ReuseComparison result={result} />}
         {nextAccount && <Card className="next-account-card">
           <h2>Want to improve one more account?</h2>
           <p>{nextAccount.serviceName} {nextAccount.issueType === 'reused' ? 'still shares a password.' : 'still has a password that is easy to guess.'}</p>
           <PrimaryButton onClick={() => navigate({ screen: 'safer-password', accountId: nextAccount.id })}>Fix {nextAccount.serviceName} password</PrimaryButton>
         </Card>}
         <TextAction onClick={() => navigate({ screen: 'vault' })}>Back to vault</TextAction>
-        {reused && <details className="success-comparison-details"><summary>See what changed</summary><ReuseComparison result={result} /></details>}
       </div>
     </>
   );

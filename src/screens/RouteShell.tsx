@@ -3,9 +3,9 @@ import { Card, PageHeader, PrimaryButton } from '../components/index.ts';
 import type { Route } from '../routes.ts';
 
 const entryScreens = {
-  welcome: { title: 'Welcome', subtitle: 'JU Secure – Final Prototype', heading: 'Safer passwords, one account at a time.', description: 'See which accounts share a password and give each one its own.', action: 'Get started' },
+  welcome: { title: 'Welcome', subtitle: 'JU Secure', heading: 'Safer passwords, one account at a time.', description: 'See which accounts share a password and give each one its own.', action: 'Get started' },
   'create-vault': { title: 'Your vault', subtitle: 'Ready to explore.', heading: 'Your vault is ready.', description: 'Explore your accounts and improve your password habits.', action: 'Open vault' },
-  'import-passwords': { title: 'Your accounts', subtitle: 'A simple way to get started.', heading: 'Explore the sample accounts.', description: 'Your accounts are ready to explore.', action: 'Open vault' },
+  'import-passwords': { title: 'Your accounts', subtitle: 'A simple way to get started.', heading: 'Explore your accounts.', description: 'Your accounts are ready to explore.', action: 'Open vault' },
   unlock: { title: 'Welcome back', subtitle: 'Open your vault.', heading: 'Continue exploring.', description: 'Return to your accounts and choose your next step.', action: 'Open vault' },
 };
 

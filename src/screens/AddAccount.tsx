@@ -137,7 +137,7 @@ export function AddAccount({ navigate, onAdded }: { navigate: (route: Route) => 
               </div>
             ) : (
               <div className="form-field">
-                <label className="form-label" htmlFor="existing-demo-password">Choose a sample password</label>
+                <label className="form-label" htmlFor="existing-demo-password">Choose an existing password</label>
                 <select className="form-input" id="existing-demo-password" value={existingDemoPassword}
                   onChange={event => {
                     setExistingDemoPassword(event.target.value); setKeptDemoPassword(null); setFormError('');

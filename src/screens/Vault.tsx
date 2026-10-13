@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { AccountCard, Card, FloatingActionButton, PageHeader, PrimaryButton, SecuritySummary, TextAction } from '../components/index.ts';
+import { AccountCard, Card, FloatingActionButton, PrimaryButton, SecuritySummary, TextAction } from '../components/index.ts';
 import { ReuseGroup, WhyItMatters } from '../components/ReuseGroup.tsx';
 import { useAppState } from '../state/AppContext.tsx';
 import { getRecommendedAccount, getRelatedAccounts } from '../state/security.ts';
@@ -27,7 +27,9 @@ export function Vault({ navigate, focusNewestAccount = false, deferredAccountId 
   const related = recommended ? getRelatedAccounts(state.accounts, recommended.id) : [];
   return (
     <>
-      <PageHeader title="Vault" subtitle="Your accounts, all in one place." />
+      <header className="account-overview-intro" data-testid="account-overview-intro">
+        <h1 className="visually-hidden">Your accounts</h1>
+      </header>
       <SecuritySummary summary={summary} />
       {recommended && <Card className="recommendation-card" data-testid="vault-recommendation">
         <span className="recommendation-eyebrow">{deferred ? 'Still needs attention' : 'Recommended action'}</span>

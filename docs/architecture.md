@@ -28,7 +28,7 @@ Security renders all active groups and their actual members, with a contextual f
 
 `resolve-issue` saves a valid fresh supplied `demoPassword`, or generates a fresh example if needed. It marks the selected account strong and safe and removes it from its reused group. Other accounts keep their passwords. Group normalization makes a strong final member safe; a weak final member retains its strength issue. `status` and `issueType` describe the primary displayed issue, while `passwordStrength` preserves strength independently.
 
-`lastResolution` captures the selected account, original issue, related names/IDs, before/after summaries, and the original peers' resulting statuses/groups. The optional success group comparison uses historical snapshots, so later changes cannot rewrite an earlier comparison. Overall before/after health totals and an issue-count panel are not displayed on success; the current password-health summary remains available in Vault.
+`lastResolution` captures the selected account, original issue, related names/IDs, before/after summaries, and the original peers' resulting statuses/groups. The visible success group comparison uses historical snapshots, so later changes cannot rewrite an earlier comparison. Overall before/after health totals and an issue-count panel are not displayed on success; the current password-health summary remains available in Vault.
 
 Resolving Spotify produces **4 safe / 14 reused / 6 weak**. Resolving Google next gives **5 / 13 / 6**; resolving Netflix gives **7 / 11 / 6**, because Instagram no longer shares its password with another account. In the two-member Dropbox/Adobe group, resolving one account removes both reuse warnings without changing the other's password. Unrelated groups and weak accounts retain their issues.
 
@@ -36,15 +36,15 @@ The reducer also supports account addition/import, filters, demo settings, onboa
 
 ## Password-change journey
 
-The contextual fix opens one compact password screen rather than requiring the user to read a separate risk screen first. The selected account, short explanation, generated example, password controls, and **Use this password** action are immediately available. Additional group context and security education stay collapsed under **Why does this matter?** after the actions. This returns to Emma's simple prepare-and-complete interaction while preserving Karim-inspired direct actions.
+The contextual fix opens one compact password screen rather than requiring the user to read a separate risk screen first. The selected account, short explanation, generated example, and copy controls are immediately available. **Use unique password** is the primary action, with Karim-inspired sparkle and arrow icons, followed by secondary **Generate another** and **Not now**. Additional group context and security education stay collapsed under **Why does this matter?** after the actions. This returns to Emma's simple prepare-and-complete interaction while preserving Karim-inspired direct actions.
 
 The route `/security/safer/:accountId` has one preparation screen. Its actions follow three logical stages:
 
 | Stage | Actions and effect |
 | --- | --- |
 | Prepare | Display a fresh unique `DEMO-` example; reveal, copy, generate another, or read optional education. Account state is unchanged. |
-| Complete | Only **Use this password** dispatches `resolve-issue` and opens success. The update affects the sample account in memory. |
-| Next action | Show a short password-updated confirmation and the next contextual fix; group comparison remains optional. |
+| Complete | Only **Use unique password** dispatches `resolve-issue` and opens success. The update affects the sample account in memory. |
+| Feedback and next action | Show the own-password confirmation and visible historical group comparison, followed by the next contextual fix. |
 
 The prepared example lives in screen state. Cancelling, leaving the route, browser back, and generating/copying an example do not dispatch resolution. In-app back returns to the flow's origin. Completion is an explicit sample-state update, never a verified external change. There is no timer that silently completes an action.
 
@@ -54,7 +54,7 @@ The external-service guidance, provider instructions, website-change question, a
 
 `PasswordDisplay` supports reveal/hide and copying the example. Copy success is shown only when clipboard writing succeeds; unavailable access or an error requires manual copying and does not show a false success. Transient reveal/copy feedback resets when the value changes or the screen remounts.
 
-Success gives a short **Password updated** message and describes the selected sample account's changed reuse relationship. The next contextual fix is the prominent action, followed by a smaller option to return to Vault. Historical group comparison stays collapsed below under **See what changed**; repeated disclaimers and overall health statistics are removed. Missing or already-safe accounts have return actions instead of dead ends.
+Success gives a short **Password updated** message, confirms that the selected account now has its own password, and names the accounts it no longer shares with. A concise benefit explains that a problem with one service leaves the other accounts' passwords separate. **What changed** is always visible for reuse fixes: the historical **Before** and **Now** panels show the selected account separately while accurately retaining shared or weak peers. The next contextual fix follows this comparison, with a smaller option to return to Vault. Overall health statistics remain in Vault. Missing or already-safe accounts have return actions instead of dead ends.
 
 ## Retained interactions
 
@@ -81,18 +81,20 @@ Typed hash routes support browser history and direct reloads on GitHub Pages wit
 | Security | `#/security/reused/:accountId` | Account-specific reuse explanation and fix |
 | Security | `#/security/safer/:accountId` | Generated password, optional education, explicit completion |
 | Security | `#/security/weak/:accountId` | Weak-password explanation and fix |
-| Security | `#/security/success` | Short success, next action, optional group comparison |
+| Security | `#/security/success` | Own-password confirmation, visible group comparison, next action |
 | Learn | `#/learn` | Learning overview |
 | Learn | `#/learn/:articleId` | Short learning article |
 | Settings | `#/settings` | Demo preference switches |
 
 Exactly four primary sections exist: Vault, Security, Learn, and Settings. Subscreens inherit their parent section. Onboarding routes sit outside the primary navigation. Route changes reset document scrolling, update the page title, and focus the main content for keyboard and assistive-technology users.
 
+Vault keeps a visually hidden **Your accounts** H1 in the main content for accessible page structure. Its visible introduction places **Your accounts, all in one place.** directly beneath **JU Secure** in the brand header, instead of a large Vault heading. The health summary, recommendation, four-member Spotify group, risk explanation, **Fix Spotify password**, and **Choose another account** remain available.
+
 ## Design and behaviour rationale
 
-`styles/tokens.css` retains Emma's colours, typography, spacing, radii, and app dimensions. The flat viewport has a 390px maximum width and normal document scrolling. Fixed bottom navigation aligns with the app; end padding keeps the last account accessible. The magenta add button floats in a transparent wrapper without a phone frame, decorative outer border, or rectangular overlay.
+`styles/tokens.css` retains Emma's colours, typography, spacing, radii, and app dimensions. The flat viewport has a 390px maximum width and normal document scrolling. Fixed bottom navigation aligns with the app; end padding keeps the last account accessible. The magenta Add account button sits inline in the accounts heading below the recommendation, without a phone frame, decorative outer border, or rectangular overlay.
 
-Reusable semantic components provide worded statuses, visible focus, labelled switches, account/group visuals, and live feedback. Short descriptions are the default; expandable inline explanations preserve educational material without requiring every user to read it. A single discreet **Interactive prototype · Sample accounts** identification supplies the interface's context without repeated demo banners or lengthy warnings.
+Reusable semantic components provide worded statuses, visible focus, labelled switches, account/group visuals, and live feedback. Short descriptions are the default; expandable inline explanations preserve educational material without requiring every user to read it. Prototype/sample labels and repetitive disclaimers are removed from presentation screens; the fictional data, predictable generator, and absence of real account operations remain documented here and in the README.
 
 | Fogg element | Design evidence |
 | --- | --- |

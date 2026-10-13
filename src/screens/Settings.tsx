@@ -8,7 +8,7 @@ export function Settings() {
     <>
       <PageHeader title="Settings" subtitle="Make yourself at home." />
       <Card className="persona-card"><span className="persona-avatar" aria-hidden="true">E</span><div><h2>Emma’s vault</h2><p>Your account collection</p></div><ShieldCheck size={20} aria-hidden="true" /></Card>
-      <div className="section-heading settings-heading"><h2>Preference preview</h2></div>
+      <div className="section-heading settings-heading"><h2>Preferences</h2></div>
       <Card className="settings-group">
         <SettingsRow icon={LockKeyhole} title="Automatic lock">
           <Toggle label="Automatic lock" checked={state.settings.autoLock}
@@ -19,7 +19,7 @@ export function Settings() {
             onChange={securityGuidance => dispatch({ type: 'update-settings', settings: { securityGuidance } })} />
         </SettingsRow>
       </Card>
-      <details className="why-it-matters settings-learn-more"><summary>Learn more</summary><div className="why-it-matters-content"><p>These switches preview preferences and reset when you reload. Automatic lock does not lock this interface. Security explanations stay available.</p></div></details>
+      <details className="why-it-matters settings-learn-more"><summary>Learn more</summary><div className="why-it-matters-content"><p>These preferences reset when you reload. Automatic lock does not lock this interface. Security explanations stay available.</p></div></details>
       <div className="about-app"><div className="about-wordmark">JU Secure</div><p>Made for student life.</p><span>v0.1</span></div>
     </>
   );

@@ -10,11 +10,23 @@ const navigation = (page: Page) => page.getByRole('navigation', { name: 'Main na
 const accountCard = (page: Page, service: string) =>
   page.getByTestId('account-card').filter({ has: page.locator('.account-service', { hasText: new RegExp(`^${service.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) }) });
 
-async function expectPrototypeIdentification(page: Page) {
-  const identification = page.getByText('Interactive prototype · Sample accounts', { exact: true });
-  await expect(identification).toHaveCount(1);
-  await expect(identification).toBeVisible();
-  await expect(page.getByText(/FINAL DEMO|Demo only|Fictional accounts only|Your demo vault is safer|Demo action completed|Demo problem resolved/i)).toHaveCount(0);
+async function expectCleanInterface(page: Page) {
+  await expect(page.locator('.prototype-identification')).toHaveCount(0);
+  await expect(page.getByText(/\bprototype\b|Sample accounts|FINAL DEMO|Demo only|Fictional accounts only|Your demo vault is safer|Demo action completed|Demo problem resolved/i)).toHaveCount(0);
+  const isOverview = await page.getByTestId('account-overview-intro').count() > 0;
+  await expect(page.getByText('Your accounts, all in one place.', { exact: true })).toHaveCount(isOverview ? 1 : 0);
+}
+
+async function expectAccountOverview(page: Page) {
+  const tagline = page.locator('.brand-header').getByText('Your accounts, all in one place.', { exact: true });
+  await expect(tagline).toBeVisible();
+  expect(await tagline.evaluate(element => element.parentElement?.matches('header.brand-header'))).toBe(true);
+  await expect(main(page).getByText('Your accounts, all in one place.', { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId('security-summary')).toBeVisible();
+  await expect(main(page).getByRole('heading', { level: 1, name: 'Vault', exact: true })).toHaveCount(0);
+  await expect(page.getByTestId('account-overview-intro').getByRole('heading', { level: 1, name: 'Your accounts', exact: true })).toHaveCount(1);
+  await expect(page.locator('.brand-header').getByText('JU Secure', { exact: true })).toBeVisible();
+  await expectCleanInterface(page);
 }
 
 /** Checks the full click surface, including fixed navigation and overlapping controls. */
@@ -41,14 +53,14 @@ async function expectClearAction(action: Locator, scroll = false) {
 
 async function openVault(page: Page) {
   await page.goto('./#/vault');
-  await expect(main(page).getByRole('heading', { level: 1, name: 'Vault', exact: true })).toBeVisible();
-  await expectPrototypeIdentification(page);
+  await expectAccountOverview(page);
 }
 
 async function navigateTo(page: Page, section: 'Vault' | 'Security' | 'Learn' | 'Settings') {
   await navigation(page).getByRole('button', { name: section === 'Security' ? /^Security/ : section, exact: section !== 'Security' }).click();
-  await expect(main(page).getByRole('heading', { name: section, level: 1, exact: true })).toBeVisible();
-  await expectPrototypeIdentification(page);
+  if (section === 'Vault') await expectAccountOverview(page);
+  else await expect(main(page).getByRole('heading', { name: section, level: 1, exact: true })).toBeVisible();
+  await expectCleanInterface(page);
 }
 
 async function expectSummary(page: Page, summary: Summary) {
@@ -59,7 +71,7 @@ async function expectSummary(page: Page, summary: Summary) {
 }
 
 async function vaultSnapshot(page: Page) {
-  await expect(main(page).getByRole('heading', { name: 'Vault', level: 1, exact: true })).toBeVisible();
+  await expectAccountOverview(page);
   return {
     summary: await page.locator('.summary-stats').getAttribute('aria-label'),
     accounts: await page.getByTestId('account-card').evaluateAll(cards => cards.map(card => card.getAttribute('aria-label'))),
@@ -91,13 +103,16 @@ async function passwordSnapshot(page: Page) {
 async function expectQuickFix(page: Page, service: string) {
   await expect(page.getByRole('heading', { name: 'Safer password', level: 1, exact: true })).toBeVisible();
   await expect(page.locator('.page-subtitle')).toHaveText(`For ${service}`);
-  await expect(page.getByRole('button', { name: 'Use this password', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use unique password', exact: true })).toBeVisible();
   await expect(page.getByText('Generated password', { exact: true })).toBeVisible();
   await expect(page.getByTestId('password-website-guidance')).toHaveCount(0);
   await expect(page.getByTestId('password-change-confirmation')).toHaveCount(0);
   await expect(page.getByTestId('password-flow-progress')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Continue to password change|Yes, mark as completed|Not yet/ })).toHaveCount(0);
-  await expectPrototypeIdentification(page);
+  await expect(main(page).locator('.screen-actions').getByRole('button')).toHaveText(['Use unique password', 'Generate another', 'Not now']);
+  await expect(page.getByRole('button', { name: 'Use unique password', exact: true })).toHaveClass(/button-primary/);
+  await expect(page.getByRole('button', { name: 'Generate another', exact: true })).toHaveClass(/button-secondary/);
+  await expectCleanInterface(page);
 }
 
 async function startRecommendedFix(page: Page, service = 'Spotify') {
@@ -112,29 +127,29 @@ async function startAccountFix(page: Page, service: string) {
 }
 
 async function usePreparedPassword(page: Page) {
-  await page.getByRole('button', { name: 'Use this password', exact: true }).click();
+  await page.getByRole('button', { name: 'Use unique password', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Password updated', level: 1, exact: true })).toBeVisible();
   await expect(page.locator('.progress-card')).toHaveCount(0);
   await expect(page.getByRole('group', { name: /accounts:.*safe.*reused.*weak/ })).toHaveCount(0);
-  await expectPrototypeIdentification(page);
+  await expectCleanInterface(page);
 }
 
-async function openComparison(page: Page) {
-  const disclosure = page.locator('details').filter({ has: page.locator('summary', { hasText: /^See what changed$/ }) });
-  await expect(disclosure).toHaveJSProperty('open', false);
-  await expect(page.getByTestId('reuse-comparison')).not.toBeVisible();
-  await disclosure.locator('summary').click();
-  await expect(disclosure).toHaveJSProperty('open', true);
+async function expectComparison(page: Page) {
+  await expect(page.getByRole('heading', { name: 'What changed', exact: true })).toBeVisible();
+  await expect(page.getByText('See what changed', { exact: true })).toHaveCount(0);
+  await expect(page.locator('.success-comparison-details')).toHaveCount(0);
   await expect(page.getByTestId('reuse-comparison')).toBeVisible();
-  return disclosure;
+  await expect(page.getByTestId('before-reuse-group').getByRole('heading', { name: 'Before', exact: true })).toBeVisible();
+  await expect(page.getByTestId('after-reuse-group').getByRole('heading', { name: 'Now', exact: true })).toBeVisible();
 }
 
-test('welcome opens the sample vault with one action and no registration', async ({ page }) => {
+test('welcome opens the account overview with one action and no registration', async ({ page }) => {
   await page.goto('./');
   await expect(page.getByRole('heading', { name: 'Welcome', level: 1, exact: true })).toBeVisible();
-  await expectPrototypeIdentification(page);
+  await expectCleanInterface(page);
   await expect(page.locator('input')).toHaveCount(0);
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await expectAccountOverview(page);
   await expectSummary(page, initialSummary);
   await expect(page.getByTestId('account-card')).toHaveCount(24);
   await expect(navigation(page)).toBeVisible();
@@ -163,18 +178,44 @@ test('reuse shows every actual member and optional explanations without delaying
   await expect(page.getByRole('list', { name: 'Accounts sharing the same password' }).locator('li > span:last-child')).toHaveText(originalGroup);
 });
 
-test('the first mobile viewport exposes the fix, copy, use and next recommendation without overlap', async ({ page }) => {
+test('the account overview and ordered password actions are clickable with an expanded result comparison', async ({ page }) => {
   await openVault(page);
+  await expect(page.getByTestId('vault-recommendation')).toContainText('If one password is exposed, someone could try it on the other accounts.');
+  await expect(page.getByTestId('vault-recommendation').getByRole('list', { name: 'Accounts sharing the same password' }).locator('li > span:last-child')).toHaveText(originalGroup);
   await expectClearAction(page.getByTestId('vault-recommendation').getByRole('button', { name: 'Fix Spotify password', exact: true }));
+  await expectClearAction(page.getByRole('button', { name: 'Choose another account', exact: true }));
   await startRecommendedFix(page);
-  for (const label of ['Copy password', 'Generate another', 'Use this password']) await expectClearAction(page.getByRole('button', { name: label, exact: true }));
+  for (const label of ['Copy password', 'Use unique password', 'Generate another', 'Not now']) await expectClearAction(page.getByRole('button', { name: label, exact: true }));
+  const useBounds = await page.getByRole('button', { name: 'Use unique password', exact: true }).boundingBox();
+  const generateBounds = await page.getByRole('button', { name: 'Generate another', exact: true }).boundingBox();
+  const cancelBounds = await page.getByRole('button', { name: 'Not now', exact: true }).boundingBox();
+  expect(useBounds!.y + useBounds!.height).toBeLessThanOrEqual(generateBounds!.y);
+  expect(generateBounds!.y + generateBounds!.height).toBeLessThanOrEqual(cancelBounds!.y);
+  const useAction = page.getByRole('button', { name: 'Use unique password', exact: true });
+  const icons = useAction.locator('svg');
+  await expect(icons).toHaveCount(2);
+  for (const icon of await icons.all()) {
+    await expect(icon).toBeVisible();
+    await expect(icon).toHaveAttribute('aria-hidden', 'true');
+  }
+  const leftIconBounds = await icons.first().boundingBox();
+  const labelBounds = await useAction.getByText('Use unique password', { exact: true }).boundingBox();
+  const arrowBounds = await icons.last().boundingBox();
+  expect(leftIconBounds!.x + leftIconBounds!.width).toBeLessThanOrEqual(labelBounds!.x);
+  expect(labelBounds!.x + labelBounds!.width).toBeLessThanOrEqual(arrowBounds!.x);
+  expect(labelBounds!.x + labelBounds!.width / 2).toBeLessThan(useBounds!.x + useBounds!.width / 2);
+  expect(arrowBounds!.x + arrowBounds!.width).toBeGreaterThanOrEqual(useBounds!.x + useBounds!.width - 32);
   await usePreparedPassword(page);
+  await expectComparison(page);
+  const feedbackBounds = await page.locator('.success-feedback').boundingBox();
+  const comparisonBounds = await page.locator('.reuse-progress-card').boundingBox();
+  const nextBounds = await page.locator('.next-account-card').boundingBox();
+  expect(feedbackBounds!.y + feedbackBounds!.height).toBeLessThanOrEqual(comparisonBounds!.y);
+  expect(comparisonBounds!.y + comparisonBounds!.height).toBeLessThanOrEqual(nextBounds!.y);
   const next = page.getByRole('button', { name: 'Fix Google password', exact: true });
   await expect(next).toHaveClass(/button-primary/);
-  await expectClearAction(next);
+  await expectClearAction(next, true);
   await expect(page.getByRole('button', { name: 'Back to vault', exact: true })).not.toHaveClass(/button-primary/);
-  await expect(page.locator('details').filter({ hasText: 'See what changed' })).toHaveJSProperty('open', false);
-  await expect(page.getByTestId('reuse-comparison')).not.toBeVisible();
 });
 
 test('generation, copying, cancellation, back, history and navigation preserve every account and password', async ({ page }) => {
@@ -241,7 +282,7 @@ test('Security preserves every shared group and lets the user choose a different
   expect(await vaultSnapshot(page)).toEqual(before);
 });
 
-test('Use this password alone saves the displayed unique value and offers the next direct fix', async ({ page }) => {
+test('Use unique password alone saves the displayed unique value and offers the next direct fix', async ({ page }) => {
   await openVault(page);
   const original = await savedPassword(page, 'Spotify');
   const peerOriginal = await savedPassword(page, 'Google');
@@ -253,8 +294,9 @@ test('Use this password alone saves the displayed unique value and offers the ne
   await expect(page.getByText('Spotify no longer shares its password with Google, Netflix, and Instagram.', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Want to improve one more account?', exact: true })).toBeVisible();
   await expect(page.getByText('Google still shares a password.', { exact: true })).toBeVisible();
-  await expect(page.locator('.success-feedback p')).toHaveCount(1);
-  await openComparison(page);
+  await expect(page.getByText('If Spotify has a problem, the password used by the other accounts is still separate.', { exact: true })).toBeVisible();
+  await expect(page.locator('.success-feedback p')).toHaveCount(2);
+  await expectComparison(page);
   await expect(page.getByTestId('before-reuse-group').getByRole('listitem')).toHaveText(originalGroup);
   const after = page.getByTestId('after-reuse-group');
   await expect(after).toContainText('Spotify');
@@ -280,7 +322,7 @@ test('fixing a two-member reuse group also clears the final member without chang
   await startAccountFix(page, 'Dropbox');
   await usePreparedPassword(page);
   await expect(page.getByText('Dropbox no longer shares its password with Adobe.', { exact: true })).toBeVisible();
-  await openComparison(page);
+  await expectComparison(page);
   const after = page.getByTestId('after-reuse-group');
   await expect(after).toContainText('Adobe');
   await expect(after).toContainText('Own passwords');
@@ -316,12 +358,12 @@ test('removing a two-member weak reuse relationship preserves the remaining stre
   await page.getByRole('button', { name: 'Add account', exact: true }).click();
   await page.getByLabel('Website or app', { exact: true }).fill('Sample Weak Copy');
   await page.getByRole('button', { name: 'Choose an existing password', exact: true }).click();
-  await page.getByLabel('Choose a sample password', { exact: true }).selectOption(githubOriginal);
+  await page.getByLabel('Choose an existing password', { exact: true }).selectOption(githubOriginal);
   await page.getByRole('button', { name: 'Keep this password', exact: true }).click();
   await page.getByRole('button', { name: 'Add account', exact: true }).click();
   await startAccountFix(page, 'Sample Weak Copy');
   await usePreparedPassword(page);
-  await openComparison(page);
+  await expectComparison(page);
   await expect(page.getByTestId('before-reuse-group').getByRole('listitem')).toHaveText(['Sample Weak Copy', 'GitHub']);
   const after = page.getByTestId('after-reuse-group');
   await expect(after).toContainText('Still needs a stronger password');
@@ -335,7 +377,7 @@ test('removing a two-member weak reuse relationship preserves the remaining stre
   await expect(main(page)).toContainText('easy to guess');
 });
 
-test('optional comparisons retain the completed change snapshot when the remaining group changes later', async ({ page }) => {
+test('expanded comparisons retain the completed change snapshot when the remaining group changes later', async ({ page }) => {
   await openVault(page);
   const original = await savedPassword(page, 'Google');
   await startRecommendedFix(page);
@@ -344,14 +386,14 @@ test('optional comparisons retain the completed change snapshot when the remaini
   await page.getByRole('button', { name: 'Add account', exact: true }).click();
   await page.getByLabel('Website or app', { exact: true }).fill('Later Shared App');
   await page.getByRole('button', { name: 'Choose an existing password', exact: true }).click();
-  await page.getByLabel('Choose a sample password', { exact: true }).selectOption(original);
+  await page.getByLabel('Choose an existing password', { exact: true }).selectOption(original);
   await page.getByRole('button', { name: 'Keep this password', exact: true }).click();
   await page.getByRole('button', { name: 'Add account', exact: true }).click();
   await navigateTo(page, 'Security');
   await expect(page.locator('.reuse-issue-card').first().getByRole('list', { name: 'Accounts sharing the same password' }).locator('li > span:last-child')).toHaveText(['Google', 'Netflix', 'Instagram', 'Later Shared App']);
   await page.evaluate(() => { window.location.hash = '/security/success'; });
   await expect(page.getByRole('heading', { name: 'Password updated', level: 1, exact: true })).toBeVisible();
-  await openComparison(page);
+  await expectComparison(page);
   await expect(page.getByTestId('before-reuse-group').getByRole('listitem')).toHaveText(originalGroup);
   await expect(page.getByTestId('after-reuse-group').locator('.connected-accounts').getByRole('listitem')).toHaveText(['Google', 'Netflix', 'Instagram']);
   await expect(page.getByTestId('reuse-comparison')).not.toContainText('Later Shared App');
@@ -469,7 +511,7 @@ for (const width of [320, 390, 430, 1280]) {
       for (const label of ['Vault', 'Security', 'Learn', 'Settings']) {
         await expect(navigation(page).getByRole('button', { name: label === 'Security' ? /^Security/ : label, exact: label !== 'Security' })).toBeInViewport();
       }
-      await expectPrototypeIdentification(page);
+      await expectCleanInterface(page);
     }
 
     await expectLayout();
@@ -485,11 +527,11 @@ for (const width of [320, 390, 430, 1280]) {
     await navigateTo(page, 'Vault');
     await startRecommendedFix(page);
     await expectLayout();
-    await expectClearAction(page.getByRole('button', { name: 'Use this password', exact: true }), true);
+    await expectClearAction(page.getByRole('button', { name: 'Use unique password', exact: true }), true);
     await usePreparedPassword(page);
     await expectLayout();
-    await expectClearAction(page.getByRole('button', { name: 'Fix Google password', exact: true }));
-    await openComparison(page);
+    await expectComparison(page);
+    await expectClearAction(page.getByRole('button', { name: 'Fix Google password', exact: true }), true);
     await expectLayout();
     await expectClearAction(page.getByRole('button', { name: 'Back to vault', exact: true }), true);
     await navigateTo(page, 'Vault');
