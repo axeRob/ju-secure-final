@@ -88,3 +88,16 @@
 .account-details-help { margin-top: 0; }
 .accounts-heading .count-label { margin-left: auto; }
 html { scroll-padding-bottom: calc(var(--nav-height) + var(--space-5) + env(safe-area-inset-bottom)); }
+/* Leak diagram on the Vault recommendation card (from the Deliver-phase prototype). */
+.leak-diagram { margin: 0 0 var(--space-2); }
+.leak-diagram svg { display: block; width: 100%; height: auto; }
+.leak-diagram figcaption { color: var(--color-muted); font-size: var(--text-meta); margin-top: var(--space-1); }
+.leak-label { fill: var(--color-muted); font-size: 10px; }
+.leak-node-leaked { fill: #2a2416; stroke: #5a4a24; stroke-width: 1.5; }
+.leak-node-target { fill: var(--color-surface-hover); stroke: #8a5560; stroke-width: 1.5; }
+.leak-node-name { fill: var(--color-text); font-size: 12px; font-weight: 600; }
+.leak-node-status { font-size: 11px; font-weight: 600; }
+.leak-status-leaked { fill: var(--color-weak); }
+.leak-status-open { fill: var(--color-warning); }
+.leak-arrow { stroke: var(--color-warning); stroke-width: 2; }
+.leak-arrow-head { fill: var(--color-warning); }
